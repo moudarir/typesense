@@ -1,0 +1,12 @@
+## Folders
+.cache/
+.config/
+.vscode/
+.idea/
+public/
+vendor/
+
+## Files
+.DS_Store
+composer.lock
+src/Benchmark.php

@@ -1,0 +1,115 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Moudarir\Typesense\Helpers;
+
+use JsonException;
+
+final class CommonHelper
+{
+
+    /**
+     * @param array<string, mixed> $filters
+     */
+    public static function buildFilterExpression(array $filters): string
+    {
+        if ($filters === []) {
+            return '';
+        }
+
+        $output = [];
+
+        foreach ($filters as $field => $value) {
+            if ($value === [] || $value === '' || $value === null) {
+                continue;
+            }
+
+            $negative = "";
+
+            if (str_contains($field, "!")) {
+                $negative = "!";
+                $field = str_replace("!", "", $field);
+            }
+
+
+            if (is_array($value)) {
+                $items = [];
+
+                foreach ($value as $item) {
+                    if (is_string($item) && str_contains($item, ' ')) {
+                        $items[] = "`$item`";
+                    } else {
+                        $items[] = (string)$item;
+                    }
+                }
+
+                $output[] = sprintf(
+                    '%s:%s=[%s]',
+                    $field,
+                    $negative,
+                    implode(',', $items)
+                );
+            } else {
+                $output[] = sprintf(
+                    '%s:%s%s%s',
+                    $field,
+                    $negative,
+                    str_ends_with($field, '_at') ? '' : '=',
+                    $value
+                );
+            }
+        }
+
+        if ($output === []) {
+            return '';
+        }
+
+        return join(" && ", $output);
+    }
+
+    /**
+     * @param array{
+     *     document: array,
+     *     highlight?: array
+     * } $hit
+     */
+    public static function normalizeDocument(array $hit): array
+    {
+        $document = $hit['document'];
+
+        if (!empty($hit['highlight'])) {
+            $document['highlights'] = array_map(
+                static fn ($highlight) => $highlight['snippet'] ?? $highlight,
+                $hit['highlight']
+            );
+        }
+
+        return $document;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $data
+     * @throws JsonException
+     */
+    public static function encodeAsJsonL(array $data): string
+    {
+        return implode("\n", array_map(static fn (array $d) => json_encode($d, JSON_THROW_ON_ERROR), $data));
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public static function decodeFromJsonL(string $response): array
+    {
+        $lines = array_filter(
+            explode("\n", trim($response)),
+            static fn (string $line): bool => $line !== ''
+        );
+
+        return array_map(
+            static fn (string $line): array => json_decode($line, true, 512, JSON_THROW_ON_ERROR),
+            $lines
+        );
+    }
+}
