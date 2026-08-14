@@ -34,6 +34,14 @@ final readonly class TypesenseSearchResult
             : $this->getHits();
     }
 
+    /*
+     * Without `group_by`, `per_page` limits the number of documents returned
+     * and `found` is the total number of matching documents.
+     *
+     * With `group_by`, `per_page` limits the number of groups returned and
+     * `found` is the total number of matching groups. Documents are nested
+     * inside `grouped_hits` and must therefore be processed separately.
+     */
     public function getHits(): array
     {
         if (empty($this->results['hits'])) {
@@ -55,12 +63,15 @@ final readonly class TypesenseSearchResult
         $groupedHits = [];
 
         foreach ($this->results['grouped_hits'] as $group) {
-            $key = (string) $group['group_key'][0];
+            $key = $group['group_key'][0];
+            $key = is_array($key) ? $key : [$key];
 
-            $groupedHits[$key] = array_map(
-                CommonHelper::normalizeDocument(...),
-                $group['hits']
-            );
+            foreach ($key as $k) {
+                $groupedHits[$k] = array_map(
+                    CommonHelper::normalizeDocument(...),
+                    $group['hits']
+                );
+            }
         }
 
         return $groupedHits;

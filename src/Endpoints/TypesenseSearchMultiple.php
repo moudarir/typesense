@@ -36,9 +36,10 @@ final class TypesenseSearchMultiple extends TypesenseAbstract
                 ->post('multi_search')
                 ->response();
 
-            foreach ($response['results'] as $index => $result) {
-                $this->results[$index] = new TypesenseSearchResult($result);
-            }
+            $this->results = array_map(
+                static fn (array $result): TypesenseSearchResult => new TypesenseSearchResult($result),
+                $response['results']
+            );
         } catch (HttpClientException $exception) {
             throw TypesenseException::generic($exception->getMessage());
         }

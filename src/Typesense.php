@@ -72,13 +72,16 @@ final class Typesense
     /**
      * @throws TypesenseException
      *
-     * @return list<int, TypesenseSearchResult>
+     * @return list<int, TypesenseSearchResult>|TypesenseSearchResult
      */
-    public static function searchMultiple(array $searchData, array $config): array
+    public static function searchMultiple(array $searchData, array $config, ?int $index = null): array|TypesenseSearchResult
     {
-        return new TypesenseSearchMultiple(
-            $searchData,
-            $config
-        )->getResults();
+        $search = new TypesenseSearchMultiple($searchData, $config);
+
+        if (null !== $index) {
+            return $search->getResult($index);
+        }
+
+        return $search->getResults();
     }
 }
