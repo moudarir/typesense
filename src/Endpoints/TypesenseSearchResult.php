@@ -6,9 +6,12 @@ namespace Moudarir\Typesense\Endpoints;
 
 use Moudarir\Typesense\Helpers\CommonHelper;
 
-final readonly class TypesenseSearchResult
+final class TypesenseSearchResult
 {
-    public function __construct(private array $results)
+
+    private ?array $items = null;
+
+    public function __construct(private readonly array $results)
     {
     }
 
@@ -27,13 +30,6 @@ final readonly class TypesenseSearchResult
         return $this->results['page'] ?? 1;
     }
 
-    public function getItems(): array
-    {
-        return array_key_exists('grouped_hits', $this->results)
-            ? $this->getGroupedHits()
-            : $this->getHits();
-    }
-
     /*
      * Without `group_by`, `per_page` limits the number of documents returned
      * and `found` is the total number of matching documents.
@@ -42,6 +38,56 @@ final readonly class TypesenseSearchResult
      * `found` is the total number of matching groups. Documents are nested
      * inside `grouped_hits` and must therefore be processed separately.
      */
+    public function getItems(): array
+    {
+        return $this->items ??= (
+            array_key_exists('grouped_hits', $this->results)
+                ? $this->getGroupedHits()
+                : $this->getHits()
+        );
+    }
+
+    public function first(): ?array
+    {
+        $items = $this->getItems();
+
+        if ($items === []) {
+            return null;
+        }
+
+        return $items[array_key_first($items)];
+    }
+
+    public function last(): ?array
+    {
+        $items = $this->getItems();
+
+        if ($items === []) {
+            return null;
+        }
+
+        return $items[array_key_last($items)];
+    }
+
+    public function itemsAfter(): array
+    {
+        $items = $this->getItems();
+
+        if ($items === []) {
+            return [];
+        }
+
+        if ($this->first() !== null) {
+            $items = array_slice($items, 1);
+        }
+
+        if ($this->last() !== null) {
+            $items = array_slice($items, 0, -1);
+        }
+
+        return $items;
+    }
+
     public function getHits(): array
     {
         if (empty($this->results['hits'])) {

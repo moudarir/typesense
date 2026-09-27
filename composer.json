@@ -1,6 +1,6 @@
 {
   "name": "moudarir/typesense",
-  "description": "Typesense API Library.",
+  "description": "A PHP client for managing Typesense collections, documents, API keys, searches and server operations.",
   "type": "library",
   "homepage": "https://github.com/moudarir/typesense",
   "license": "MIT",
