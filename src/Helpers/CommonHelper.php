@@ -51,6 +51,22 @@ final class CommonHelper
                     implode(',', $items)
                 );
             } else {
+                if (str_contains($value, ";")) {
+                    $interval = explode(';', $value);
+
+                    if (count($interval) === 2) {
+                        [$from, $to] = $interval;
+
+                        if (is_numeric($from) && is_numeric($to)) {
+                            $value = "[$from..$to]";
+                        }
+                    }
+                }
+
+                if (str_contains($value, ' ')) {
+                    $value = "`$value`";
+                }
+
                 $output[] = sprintf(
                     '%s:%s%s%s',
                     $field,
