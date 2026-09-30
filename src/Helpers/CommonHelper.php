@@ -87,17 +87,24 @@ final class CommonHelper
     /**
      * @param array{
      *     document: array,
-     *     highlight?: array
+     *     highlight?: array,
+     *     geo_distance_meters?: array
      * } $hit
      */
     public static function normalizeDocument(array $hit): array
     {
         $document = $hit['document'];
+        $highlight = $hit['highlight'] ?? [];
+        $distances = $hit['geo_distance_meters'] ?? [];
 
-        if (!empty($hit['highlight'])) {
+        if (is_array($distances) && array_key_exists('location', $distances)) {
+            $document['distance'] = self::formatDistance($distances['location']);
+        }
+
+        if ($highlight !== []) {
             $document['highlights'] = array_map(
-                static fn ($highlight) => $highlight['snippet'] ?? $highlight,
-                $hit['highlight']
+                static fn ($item) => $item['snippet'] ?? $item,
+                $highlight
             );
         }
 
@@ -127,5 +134,10 @@ final class CommonHelper
             static fn (string $line): array => json_decode($line, true, 512, JSON_THROW_ON_ERROR),
             $lines
         );
+    }
+
+    private static function formatDistance(int $meters): string
+    {
+        return round($meters / 1000).' Km';
     }
 }
