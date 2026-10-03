@@ -29,9 +29,8 @@ final class CommonHelper
 
             if (str_contains($field, "!")) {
                 $negative = "!";
-                $field = str_replace("!", "", $field);
+                $field = trim($field, '!');
             }
-
 
             if (is_array($value)) {
                 $items = [];
@@ -44,36 +43,22 @@ final class CommonHelper
                     }
                 }
 
-                $output[] = sprintf(
-                    '%s:%s=[%s]',
-                    $field,
-                    $negative,
-                    implode(',', $items)
-                );
+                $output[] = "$field:$negative=[".implode(',', $items).']';
             } else {
-                if (str_contains($value, ";")) {
-                    $interval = explode(';', $value);
+                if (is_string($value)) {
+                    if (str_contains($value, ";")) {
+                        $parts = explode(';', $value, 2);
 
-                    if (count($interval) === 2) {
-                        [$from, $to] = $interval;
-
-                        if (is_numeric($from) && is_numeric($to)) {
-                            $value = "[$from..$to]";
+                        if (count($parts) === 2 && is_numeric($parts[0]) && is_numeric($parts[1])) {
+                            $value = "[$parts[0]..$parts[1]]";
                         }
+                    } elseif (str_contains($value, ' ')) {
+                        $value = "`$value`";
                     }
                 }
 
-                if (str_contains($value, ' ')) {
-                    $value = "`$value`";
-                }
-
-                $output[] = sprintf(
-                    '%s:%s%s%s',
-                    $field,
-                    $negative,
-                    str_ends_with($field, '_at') ? '' : '=',
-                    $value
-                );
+                $operator = str_ends_with($field, '_at') ? '' : '=';
+                $output[] = "$field:$negative$operator$value";
             }
         }
 
@@ -81,7 +66,7 @@ final class CommonHelper
             return '';
         }
 
-        return join(" && ", $output);
+        return implode(" && ", $output);
     }
 
     /**
