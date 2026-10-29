@@ -13,9 +13,9 @@ final class TypesenseSearchResult
 
     private array $itemsAfter;
 
-    private ?array $first;
+    private array $first;
 
-    private ?array $last;
+    private array $last;
 
     public function __construct(private readonly array $results)
     {
@@ -55,14 +55,14 @@ final class TypesenseSearchResult
 
     public function first(): ?array
     {
-        if (isset($this->first) || $this->first === null) {
+        if (isset($this->first)) {
             return $this->first;
         }
 
         $items = $this->getItems();
 
         if ($items === []) {
-            $this->first = null;
+            $this->first = [];
         } else {
             $this->first = $items[array_key_first($items)];
             $this->itemsAfter = array_slice($items, 1);
@@ -73,14 +73,14 @@ final class TypesenseSearchResult
 
     public function last(): ?array
     {
-        if (isset($this->last) || $this->last === null) {
+        if (isset($this->last)) {
             return $this->last;
         }
 
         $items = $this->getItems();
 
         if ($items === []) {
-            $this->last = null;
+            $this->last = [];
         } else {
             $this->last = $items[array_key_last($items)];
             $this->itemsAfter = array_slice($items, 0, -1);
