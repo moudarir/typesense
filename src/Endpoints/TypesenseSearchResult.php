@@ -11,6 +11,12 @@ final class TypesenseSearchResult
 
     private ?array $items = null;
 
+    private array $itemsAfter;
+
+    private ?array $first;
+
+    private ?array $last;
+
     public function __construct(private readonly array $results)
     {
     }
@@ -49,43 +55,43 @@ final class TypesenseSearchResult
 
     public function first(): ?array
     {
+        if (isset($this->first) || $this->first === null) {
+            return $this->first;
+        }
+
         $items = $this->getItems();
 
         if ($items === []) {
-            return null;
+            $this->first = null;
+        } else {
+            $this->first = $items[array_key_first($items)];
+            $this->itemsAfter = array_slice($items, 1);
         }
 
-        return $items[array_key_first($items)];
+        return $this->first;
     }
 
     public function last(): ?array
     {
+        if (isset($this->last) || $this->last === null) {
+            return $this->last;
+        }
+
         $items = $this->getItems();
 
         if ($items === []) {
-            return null;
+            $this->last = null;
+        } else {
+            $this->last = $items[array_key_last($items)];
+            $this->itemsAfter = array_slice($items, 0, -1);
         }
 
-        return $items[array_key_last($items)];
+        return $this->last;
     }
 
     public function itemsAfter(): array
     {
-        $items = $this->getItems();
-
-        if ($items === []) {
-            return [];
-        }
-
-        if ($this->first() !== null) {
-            $items = array_slice($items, 1);
-        }
-
-        if ($this->last() !== null) {
-            $items = array_slice($items, 0, -1);
-        }
-
-        return $items;
+        return $this->itemsAfter ?? [];
     }
 
     public function getHits(): array
