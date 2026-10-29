@@ -53,7 +53,7 @@ final class TypesenseSearchResult
         );
     }
 
-    public function first(): ?array
+    public function first(): array
     {
         if (isset($this->first)) {
             return $this->first;
@@ -71,7 +71,7 @@ final class TypesenseSearchResult
         return $this->first;
     }
 
-    public function last(): ?array
+    public function last(): array
     {
         if (isset($this->last)) {
             return $this->last;
